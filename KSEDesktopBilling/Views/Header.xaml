@@ -1,0 +1,22 @@
+﻿<UserControl x:Class="KSEDesktopBilling.Views.Header"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:KSEDesktopBilling.Views"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d" >
+
+    <StackPanel Name="HeaderPanel" Orientation="Horizontal">
+        <Border BorderBrush="Yellow" BorderThickness="5"  Margin="0 0 40 0">
+            <Label Content="KSE" FontSize="50" FontStretch="Expanded" FontWeight="UltraBlack" Padding="20 0 30 0" BorderBrush="Red" BorderThickness="5"></Label>
+        </Border>
+        <Border  Margin="10 0 40 0">
+        <Label Content="Karanataka Silk Emporium" FontSize="20" VerticalAlignment="Center" FontStretch="Expanded" Width="500" HorizontalAlignment="Center" HorizontalContentAlignment="Center"/>
+        </Border>
+        <Border>
+            <Label Content="{Binding Source={x:Static sys:DateTime.Now},StringFormat='{}{0: Today is dddd, MMMM dd, yyyy}'}" VerticalAlignment="Center"  BorderBrush="Black" BorderThickness="1" Margin="2"></Label>
+        </Border>
+    </StackPanel>
+
+</UserControl>
