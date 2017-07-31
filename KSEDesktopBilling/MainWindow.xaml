@@ -6,7 +6,7 @@
         xmlns:ViewModel ="clr-namespace:KSE.ViewModels;assembly=KSE.ViewModels"
         xmlns:View ="clr-namespace:KSEDesktopBilling.Views"
         mc:Ignorable="d"
-        Title="KSEBilling" Width="auto">
+        Title="KSEBilling" Width="1400" MinWidth="1400">
 
     <!--<WebBrowser Name="myBrowser"/>-->
     <Window.DataContext>

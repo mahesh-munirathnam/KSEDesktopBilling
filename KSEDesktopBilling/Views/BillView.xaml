@@ -5,16 +5,19 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:vm="clr-namespace:KSE.ViewModels;assembly=KSE.ViewModels"
              mc:Ignorable="d" >
+
     <UserControl.InputBindings>
         <KeyBinding Key="Enter" Command="{Binding AddCommand}"/>
+        <KeyBinding Key="Esc" Command="{Binding ClearCommand}" />
     </UserControl.InputBindings>
+
     <StackPanel Orientation="Vertical">
         <StackPanel Orientation="Horizontal">
             <Border Background="GhostWhite" BorderBrush="Gainsboro" BorderThickness="1">
                 <StackPanel Orientation="Vertical">
                     <StackPanel Orientation="Horizontal" Margin="2">
                         <Label Content="Item type: " VerticalAlignment="Center" Width="90"></Label>
-                        <ComboBox ItemsSource="{Binding types}" SelectedItem="{Binding ditemtype}" Width="191" Margin="2">
+                        <ComboBox ItemsSource="{Binding types}" SelectedItem="{Binding SelectedItemType}" Width="191" Margin="2">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
@@ -30,47 +33,79 @@
                         <Label Content="Item Name: " VerticalAlignment="Center" Width="90"></Label>
                         <TextBox Text="{Binding txtItemName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" VerticalAlignment="Center" Width="208"/>
                     </StackPanel >
+                    <StackPanel  Orientation="Horizontal" Margin="2">
+                        <Label Content="Item Price: " VerticalAlignment="Center" Width="89"></Label>
+                        <TextBox Text="{Binding txtItemPrice, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay }" VerticalAlignment="Center" Width="210" RenderTransformOrigin="1.28,0.389"></TextBox>
+                    </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="2">
                         <Label Content="Item Quantity: " VerticalAlignment="Center"></Label>
                         <TextBox Text="{Binding txtItemQuatity, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" VerticalAlignment="Center" Width="210"></TextBox>
                     </StackPanel>
                     <StackPanel  Orientation="Horizontal" Margin="2">
-                        <Label Content="Item Price: " VerticalAlignment="Center" Width="89"></Label>
-                        <TextBox Text="{Binding txtItemPrice, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay }" VerticalAlignment="Center" Width="210" RenderTransformOrigin="1.28,0.389"></TextBox>
+                        <Label Content="Discount: " VerticalAlignment="Center" Width="89"></Label>
+                        <TextBox Text="{Binding txtDiscount, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay }" VerticalAlignment="Center" Width="210"></TextBox>
                     </StackPanel>
                     <StackPanel  Orientation="Horizontal" Margin="2">
                         <Label Content="Total: " VerticalAlignment="Center"></Label>
                         <Label Name="ItemTotal" Content="{Binding lblItemTotal}" Width="89" VerticalAlignment="Center"></Label>
                     </StackPanel>
+                    <StackPanel  Orientation="Horizontal" Margin="2">
+                        <Label Content="Discount Total: " VerticalAlignment="Center"></Label>
+                        <Label Name="DiscountTotal" Content="{Binding lblDiscountTotal}" Width="89" VerticalAlignment="Center"></Label>
+                    </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="2"  HorizontalAlignment="Center" VerticalAlignment="Center">
                         <Button Command="{Binding AddCommand}" Content="Add Item" Margin="5"/>
+                        <Button Command="{Binding ClearCommand}" Content="Clear Bill" Margin="5"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="2"  HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <Label Content="Bill Discount : "></Label>
+                        <TextBox Text="{Binding txtBillDiscount, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay }" VerticalAlignment="Center" Width="50"/>
+                        <Button Command="{Binding DiscountCommand}" Content="Apply" Margin="5"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
             <StackPanel>
-                <DataGrid ItemsSource="{Binding BillItems}" AutoGenerateColumns="False" Width="600" Margin="5">
+                <DataGrid ItemsSource="{Binding BillItems}" AutoGenerateColumns="False" Width="1000" Margin="5">
+                    <DataGrid.Resources>
+                        <DataTemplate x:Key="TaxTemplate">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="Rate"  Text="{Binding TaxRateString}" Grid.Column="0" />
+                                <TextBlock x:Name="Amount" Text="{Binding TaxAmount}" Grid.Column="1" />
+                            </Grid>
+                        </DataTemplate>
+                    </DataGrid.Resources>
                     <DataGrid.Columns >
-                        <DataGridTextColumn Header="Item Name" Binding="{Binding Name}" Width="*"/>
+                        <DataGridTextColumn Header="Item Description" Binding="{Binding FullName}" Width="*"/>
                         <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}" Width="*"/>
-                        <DataGridTextColumn Header="Price" Binding="{Binding Price}" Width="*"/>
+                        <DataGridTextColumn Header="Rate/Item" Binding="{Binding Price}" Width="*"/>
+                        <DataGridTextColumn Header="Total" Binding="{Binding Amount}" Width="*"/>
+                        <DataGridTextColumn Header="Discount" Binding="{Binding DiscountRate}" Width="*"/>
+                        <DataGridTextColumn Header="Taxable Amount" Binding="{Binding TaxableAmount}" Width="*"/>
+                        <DataGridTemplateColumn Header="CGST"  CellTemplate="{StaticResource TaxTemplate}" Width="*"/>
+                        <DataGridTemplateColumn Header="SGST" CellTemplate="{StaticResource TaxTemplate}" Width="*"/>
                         <DataGridTextColumn Header="Total" Binding="{Binding Total}" Width="*"/>
+                        <!--<DataGridTemplateColumn Header="IGST"  Width="*" CellTemplate="{StaticResource TaxTemplate}"/>-->
                     </DataGrid.Columns>
                 </DataGrid>
                 <StackPanel Orientation="Horizontal" Width="150" HorizontalAlignment="Right">
-                    <Label Content="Bill Total: " HorizontalAlignment="Right" VerticalAlignment="Center"></Label>
-                    <Label Content="{Binding BillTotal}" HorizontalAlignment="Right" VerticalAlignment="Center"></Label>
+                    <Label Content="Bill Amount: " HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <Label Content="{Binding BillAmount}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Width="150" HorizontalAlignment="Right">
-                    <Label Content="CGST: " HorizontalAlignment="Right" VerticalAlignment="Center"></Label>
-                    <Label Content="{Binding tax}" HorizontalAlignment="Right" VerticalAlignment="Center"></Label>
+                    <Label Content="CGST: " HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <Label Content="{Binding tax}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Width="150" HorizontalAlignment="Right">
-                    <Label Content="SGST: " HorizontalAlignment="Right" VerticalAlignment="Center"></Label>
-                    <Label Content="{Binding tax}" HorizontalAlignment="Right" VerticalAlignment="Center"></Label>
+                    <Label Content="SGST: " HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <Label Content="{Binding tax}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Width="150" HorizontalAlignment="Right">
-                    <Label Content="Amount: " HorizontalAlignment="Right" VerticalAlignment="Center"></Label>
-                    <Label Content="{Binding BillAmount}" HorizontalAlignment="Right" VerticalAlignment="Center"></Label>
+                    <Label Content="Bill Total: " HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <Label Content="{Binding BillTotal}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </StackPanel>
             </StackPanel>
         </StackPanel>

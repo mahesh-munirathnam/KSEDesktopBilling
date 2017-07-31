@@ -10,35 +10,50 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using KSE.ViewModels;
+using System.IO;
 
 namespace KSE.helpers
 {
     public static class PrintHelpers
     {
+        //Standard A4 size Dimensions
         static double A4Width = XUnit.FromCentimeter(21).Point;
         static double A4Height = XUnit.FromCentimeter(29.7).Point;
 
-        public static void HelloPdf(BillViewModel b)
+        public static void PrintA4Bill(BillViewModel bill)
         {
-            DateTime now = DateTime.Now;
-            string filename = "MixMigraDocAndPdfSharp.pdf";
-            filename = "D:\\"+Guid.NewGuid().ToString("D").ToUpper() + ".pdf";
-            PdfDocument document = new PdfDocument();
-            document.Info.Title = "PDFsharp XGraphic Sample";
-            document.Info.Author = "Stefan Lange";
-            document.Info.Subject = "Created with code snippets that show the use of graphical functions";
-            document.Info.Keywords = "PDFsharp, XGraphics";
+            //get the directort path to save the bills
+            string billDirPath = ConfigurationSettings.AppSettings["DIRPath"].ToString();
+            string billfolderPath = billDirPath + "\\" + DateTime.Now.Date.ToString("dd-MM-yyyy");
+            //Check if the application folder exists to store the bills
+            CreateDirectory(billDirPath);
 
-            GenerateBillPDF(document,b);
+            //folder exists, now try to create today's folder
+            CreateDirectory(billfolderPath);
 
-            Debug.WriteLine("seconds=" + (DateTime.Now - now).TotalSeconds.ToString());
+            //get count of files in today directory
+            int? filecount = GetFileCountInDirectory(billfolderPath);
 
-            // Save the document...
-            document.Save(filename);
-            Process.Start(filename);
+            if(filecount.HasValue)
+            {
+                DateTime now = DateTime.Now;
+                string filename = "KSEInvoice_"+filecount+".pdf";
+                PdfDocument document = new PdfDocument();
+                document.Info.Title = filename;
+                document.Info.Author = "KSE";
+                document.Info.Subject = "Tax Invoice";
+
+                //Generate Bill in PDF format for Print
+                GeneratePDFBill(document, bill);
+                
+                // Save the document...
+                document.Save(billfolderPath+ "\\" + filename);
+                Process.Start(billfolderPath + "\\" + filename);
+            }
+
         }
 
-        static void GenerateBillPDF(PdfDocument document,BillViewModel b)
+        static void GeneratePDFBill(PdfDocument document, BillViewModel b)
         {
             PdfPage page = document.AddPage();
             XGraphics gfx = XGraphics.FromPdfPage(page);
@@ -58,7 +73,7 @@ namespace KSE.helpers
 
             gfx.DrawString("Manufacturers and retailers of Silk Sarees and textiles", Midfont, XBrushes.Black,
               new XRect(100, 30, page.Width - 200, 15), XStringFormats.Center);
-            
+
             gfx.DrawString("#179/12-01, Farah Point, 2nd cross Lalbagh", Midfont, XBrushes.Black,
             new XRect(100, 45, page.Width - 200, 15), XStringFormats.Center);
 
@@ -75,7 +90,7 @@ namespace KSE.helpers
             // Create the item table
             Table table = BillSec.AddTable();
             table.Style = "Table";
-            table.Borders.Color = Colors.Black ;
+            table.Borders.Color = Colors.Black;
             table.Borders.Width = 0.25;
             table.Borders.Left.Width = 0.5;
             table.Borders.Right.Width = 0.5;
@@ -94,7 +109,7 @@ namespace KSE.helpers
             column = table.AddColumn("3cm");
             column.Format.Alignment = ParagraphAlignment.Right;
 
-            //Total Amount for item
+            //Amount Amount for item
             column = table.AddColumn("3cm");
             column.Format.Alignment = ParagraphAlignment.Right;
 
@@ -111,11 +126,11 @@ namespace KSE.helpers
             row.Cells[2].AddParagraph("Unit Price");
             row.Cells[2].Format.Alignment = ParagraphAlignment.Center;
             row.Cells[2].VerticalAlignment = VerticalAlignment.Center;
-            row.Cells[3].AddParagraph("Total Price");
+            row.Cells[3].AddParagraph("Amount Price");
             row.Cells[3].Format.Alignment = ParagraphAlignment.Center;
             row.Cells[3].VerticalAlignment = VerticalAlignment.Center;
-            
-            foreach(var i in b.BillItems)
+
+            foreach (var i in b.BillItems)
             {
                 row = table.AddRow();
                 row.HeadingFormat = true;
@@ -126,7 +141,7 @@ namespace KSE.helpers
                 row.Cells[1].Format.Alignment = ParagraphAlignment.Left;
                 row.Cells[2].AddParagraph(Convert.ToString(i.Price));
                 row.Cells[2].Format.Alignment = ParagraphAlignment.Left;
-                row.Cells[3].AddParagraph(Convert.ToString(i.Total));
+                row.Cells[3].AddParagraph(Convert.ToString(i.Amount));
                 row.Cells[3].Format.Alignment = ParagraphAlignment.Left;
             }
 
@@ -140,35 +155,23 @@ namespace KSE.helpers
             docRenderer.RenderObject(gfx, XUnit.FromCentimeter(4), XUnit.FromCentimeter(3), "17cm", table);
         }
 
-
-        /// <summary>
-        /// Creates an absolutely minimalistic document.
-        /// </summary>
-        static Document CreateDocument()
+        static bool CreateDirectory(string directoryPath)
         {
-            // Create a new MigraDoc document
-            Document document = new Document();
-
-            // Add a section to the document
-            Section section = document.AddSection();
-
-            // Add a paragraph to the section
-            Paragraph paragraph = section.AddParagraph();
-
-            paragraph.Format.Font.Color = Color.FromCmyk(100, 30, 20, 50);
-
-            // Add some text to the paragraph
-            paragraph.AddFormattedText("Hello, World!", TextFormat.Bold);
-
-            return document;
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+                return true;
+            }
+            return false;
         }
 
-        static XRect GetRect(int index)
+        static int? GetFileCountInDirectory(string DirPath)
         {
-            XRect rect = new XRect(0, 0, A4Width / 3 * 0.9, A4Height / 3 * 0.9);
-            rect.X = (index % 3) * A4Width / 3 + A4Width * 0.05 / 3;
-            rect.Y = (index / 3) * A4Height / 3 + A4Height * 0.05 / 3;
-            return rect;
+            if (Directory.Exists(DirPath))
+            {
+                return Directory.GetFiles(DirPath).Length;
+            }
+            return null;
         }
     }
 }

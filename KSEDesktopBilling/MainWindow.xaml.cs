@@ -22,17 +22,10 @@ namespace KSEDesktopBilling
 
         private void GenerateBill_Click(object sender, RoutedEventArgs e)
         {
-            //PrintDialog printDlg = new PrintDialog();
-            //PrintDocument DOC = new PrintDocument();
-            //DOC.DefaultPageSettings.PaperSize.Height = 3;
-            //DOC.DefaultPageSettings.PaperSize.Width = 3;
-            //DOC.DefaultPageSettings.Landscape = false;
-            ////DOC.
-            //printDlg.PrintVisual(Layout, "Grid Printing.");
             BillViewModel bill = DataContext as BillViewModel;
             if(bill.getBillItemsCount() > 0)
             {
-                PrintHelpers.HelloPdf(bill);
+                PrintHelpers.PrintA4Bill(bill);
             }
             else
             {

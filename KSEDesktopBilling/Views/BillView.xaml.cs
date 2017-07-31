@@ -23,5 +23,6 @@ namespace KSEDesktopBilling.Views
         {
             InitializeComponent();
         }
+
     }
 }
