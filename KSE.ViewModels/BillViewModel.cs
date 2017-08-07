@@ -219,7 +219,15 @@ namespace KSE.ViewModels
 
         private void DiscountBill()
         {
-            BillItems.ToList().ForEach(i => i.DiscountRate = txtBillDiscount);
+            var list =  billitems.ToList();
+            var index = 0;
+            foreach (var item in list)
+            {
+                index = billitems.IndexOf(item);
+                item.DiscountRate = txtBillDiscount;
+                billitems.Remove(item);
+                billitems.Insert(index, item);
+            }
             UpdateBill();
         }
 
