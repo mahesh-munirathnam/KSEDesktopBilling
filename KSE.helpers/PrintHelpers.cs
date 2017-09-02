@@ -4,11 +4,8 @@ using MigraDoc.Rendering;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
 using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using KSE.ViewModels;
 using System.IO;
 
@@ -17,11 +14,11 @@ namespace KSE.helpers
     public static class PrintHelpers
     {
         //Standard A4 size Dimensions
-        static double A4Width = XUnit.FromCentimeter(21).Point;
-        static double A4Height = XUnit.FromCentimeter(29.7).Point;
+        static double A5Height = XUnit.FromCentimeter(21).Point;
+        static double A5Width = XUnit.FromCentimeter(15).Point;
 
         //setup before genrating the pdf
-        public static void PrintA4Bill(BillViewModel bill)
+        public static string PrintA4Bill(BillViewModel bill)
         {
             //get the directort path to save the bills
             string billDirPath = ConfigurationSettings.AppSettings["DIRPath"].ToString();
@@ -45,57 +42,79 @@ namespace KSE.helpers
                 document.Info.Subject = "Tax Invoice";
 
                 //Generate Bill in PDF format for Print
-                GeneratePDFBill(document, bill);
+                GeneratePDFBill(document, bill, "Customer Copy");
+                GeneratePDFBill(document, bill, "Shop Copy");
 
                 // Save the document...
                 document.Save(billfolderPath + "\\" + filename);
-                Process.Start(billfolderPath + "\\" + filename);
+                //Process.Start(billfolderPath + "\\" + filename);
+                return billfolderPath + "\\" + filename;
             }
-
+            return string.Empty;
         }
 
         //Generate the pdf in format
-        static void GeneratePDFBill(PdfDocument document, BillViewModel b)
+        static void GeneratePDFBill(PdfDocument document, BillViewModel b, string PDFType)
         {
             PdfPage page = document.AddPage();
+            page.Width = A5Width;
+            page.Height = A5Height;
             XGraphics gfx = XGraphics.FromPdfPage(page);
 
             gfx.MUH = PdfFontEncoding.Unicode;
             gfx.MFEH = PdfFontEmbedding.Default;
 
-            XFont Bigfont = new XFont("Verdana", 10, XFontStyle.Bold);
-            XFont Midfont = new XFont("Verdana", 8, XFontStyle.Regular);
-            XFont Smallfont = new XFont("Verdana", 7, XFontStyle.Regular);
+            XFont Bigfont = new XFont("Verdana", 8, XFontStyle.Bold);
+            XFont Midfont = new XFont("Verdana", 7, XFontStyle.Regular);
+            XFont Smallfont = new XFont("Verdana", 6, XFontStyle.Regular);
             XPen pen = new XPen(XColors.Black, 0.5);
             XPen Dottedpen = new XPen(XColors.Black, 0.5);
             Dottedpen.DashStyle = XDashStyle.Dash;
             //Shop name and Tin Line
-            gfx.DrawLine(Dottedpen, 0, 25, page.Width, 25);
+            gfx.DrawLine(Dottedpen, 0, 27, page.Width, 27);
             //address and phone number line
-            gfx.DrawLine(Dottedpen, 0, 65, page.Width, 65);
+            gfx.DrawLine(Dottedpen, 0, 60, page.Width, 60);
             //Invoice line
-            gfx.DrawLine(Dottedpen, 0, 110, page.Width, 110);
+            gfx.DrawLine(Dottedpen, 0, 100, page.Width, 100);
+            //Terms and condition line
+            gfx.DrawLine(Dottedpen, 0, page.Height - 50, page.Width, page.Height - 50);
             #region Bill Header
             //Bill Header
-            gfx.DrawString(ConfigurationSettings.AppSettings["ShopName"].ToString(), Bigfont, XBrushes.Black,
-              new XRect(50, 5, page.Width - 200, 15), XStringFormats.TopLeft);
+            gfx.DrawString(ConfigurationSettings.AppSettings["ShopName"].ToString() + " " + ConfigurationSettings.AppSettings["ShopSubtitle"].ToString(), Bigfont, XBrushes.Black,
+              new XRect(5, 5, 100, 10), XStringFormats.TopLeft);
 
-            gfx.DrawString("GST TIN : " + ConfigurationSettings.AppSettings["GSTNO"].ToString(), Midfont, XBrushes.Black,
-            new XRect(300, 10, page.Width - 200, 15), XStringFormats.TopCenter);
+            gfx.DrawString("GSTNO: " + ConfigurationSettings.AppSettings["GSTNO"].ToString(), Midfont, XBrushes.Black,
+              new XRect(page.Width - 100, 16, 100, 10), XStringFormats.TopLeft);
 
-            gfx.DrawString(ConfigurationSettings.AppSettings["ShopSubtitle"].ToString(), Smallfont, XBrushes.Black,
-              new XRect(200, 9, page.Width - 200, 15), XStringFormats.TopLeft);
+            gfx.DrawString("(" + PDFType + ")", Midfont, XBrushes.Black,
+              new XRect(page.Width - 100, 5, 100, 10), XStringFormats.TopLeft);
 
             gfx.DrawString("Manufacturers and retailers of Silk Sarees and textiles", Midfont, XBrushes.Black,
-              new XRect(50, 30, page.Width - 200, 15), XStringFormats.TopLeft);
+              new XRect(5, 16, page.Width - 200, 10), XStringFormats.TopLeft);
 
-            gfx.DrawString("#179/12-01, Farah Point, 2nd cross Lalbagh", Midfont, XBrushes.Black,
-            new XRect(50, 40, page.Width - 200, 15), XStringFormats.TopLeft);
+            gfx.DrawString(ConfigurationSettings.AppSettings["Addr1"].ToString(), Midfont, XBrushes.Black,
+            new XRect(5, 30, page.Width - 200, 15), XStringFormats.TopLeft);
 
-            gfx.DrawString("Hosur Road, Opp Hindustan Marbles &Granite, Bangalore - 560027", Midfont, XBrushes.Black,
-            new XRect(50, 50, page.Width - 200, 15), XStringFormats.TopLeft);
+            gfx.DrawString(ConfigurationSettings.AppSettings["Addr2"].ToString(), Midfont, XBrushes.Black,
+            new XRect(5, 40, page.Width - 200, 15), XStringFormats.TopLeft);
 
+            gfx.DrawString("Contact : " + ConfigurationSettings.AppSettings["ContactNo"].ToString(), Midfont, XBrushes.Black,
+            new XRect(5, 50, page.Width - 200, 15), XStringFormats.TopLeft);
 
+            gfx.DrawString("*Terms and Conditions:", Midfont, XBrushes.Black,
+            new XRect(5, page.Height - 40, page.Width - 200, 15), XStringFormats.TopLeft);
+
+            gfx.DrawString(ConfigurationSettings.AppSettings["Terms"].ToString(), Midfont, XBrushes.Black,
+            new XRect(5, page.Height - 32, page.Width - 200, 15), XStringFormats.TopLeft);
+
+            gfx.DrawString("Authorized Signature: ", Bigfont, XBrushes.Black,
+            new XRect(page.Width - 120, page.Height - 40, page.Width - 200, 15), XStringFormats.TopLeft);
+
+            gfx.DrawString("For " + ConfigurationSettings.AppSettings["ShopName"].ToString(), Bigfont, XBrushes.Black,
+            new XRect(page.Width - 120, page.Height - 20, page.Width - 200, 15), XStringFormats.TopLeft);
+
+            gfx.DrawString("Generated On: " + System.DateTime.Now.ToString(), Smallfont, XBrushes.Black,
+            new XRect(page.Width / 3, page.Height - 10, page.Width - 200, 15), XStringFormats.TopLeft);
             #endregion
 
             // You always need a MigraDoc document for rendering.
@@ -108,16 +127,16 @@ namespace KSE.helpers
             Table InvoiceTable = BillSec.AddTable();
             InvoiceTable.Style = "Table";
             InvoiceTable.Borders.Color = Colors.Black;
-
+            InvoiceTable.Format.Font.Size = 7;
             //Adding three columns 
             //1.Invoice Date
-            Column iColumn = InvoiceTable.AddColumn("5cm");
+            Column iColumn = InvoiceTable.AddColumn("2cm");
             iColumn.Format.Alignment = ParagraphAlignment.Center;
             //2. Invoice Number
-            iColumn = InvoiceTable.AddColumn("5cm");
+            iColumn = InvoiceTable.AddColumn("3cm");
             iColumn.Format.Alignment = ParagraphAlignment.Center;
             //3. Payment Terms
-            iColumn = InvoiceTable.AddColumn("5cm");
+            iColumn = InvoiceTable.AddColumn("2cm");
             iColumn.Format.Alignment = ParagraphAlignment.Center;
 
             Row iRow = InvoiceTable.AddRow();
@@ -147,103 +166,207 @@ namespace KSE.helpers
 
             iRow.Cells[2].Format.Alignment = ParagraphAlignment.Center;
             iRow.Cells[2].VerticalAlignment = VerticalAlignment.Center;
-            iRow.Cells[2].AddParagraph("Cash");
+            iRow.Cells[2].AddParagraph(b.paymentMode);
             #endregion
-            
+
             #region Bill Table
 
             // Create the item table
             Table BillTable = BillSec.AddTable();
             BillTable.Style = "Table";
             BillTable.Borders.Color = Colors.Black;
-
+            BillTable.Format.Font.Size = 5;
             // Before you can add a row, you must define the columns
-            //description column
-            Column bColumn = BillTable.AddColumn("2cm");
+
+            //1.Item name
+            Column bColumn = BillTable.AddColumn("1.5cm");
             bColumn.Format.Alignment = ParagraphAlignment.Center;
-
-            //quantity
-            bColumn = BillTable.AddColumn("2cm");
+            //2.Quantity
+            bColumn = BillTable.AddColumn("1cm");
             bColumn.Format.Alignment = ParagraphAlignment.Right;
-
-            //rate per item column
-            bColumn = BillTable.AddColumn("2.2cm");
+            //3.Unit Price
+            bColumn = BillTable.AddColumn("1.4cm");
             bColumn.Format.Alignment = ParagraphAlignment.Right;
-
-            //Amount for item
-            bColumn = BillTable.AddColumn("2.2cm");
+            //4.Amount
+            bColumn = BillTable.AddColumn("1.4cm");
             bColumn.Format.Alignment = ParagraphAlignment.Right;
-            //Discount
-            bColumn = BillTable.AddColumn("2.2cm");
+            //5.Discount (%)
+            bColumn = BillTable.AddColumn("1.4cm");
             bColumn.Format.Alignment = ParagraphAlignment.Right;
-            //taxable amount
-            bColumn = BillTable.AddColumn("2.2cm");
+            //6.Taxable Amount
+            bColumn = BillTable.AddColumn("1.4cm");
             bColumn.Format.Alignment = ParagraphAlignment.Right;
-            //CGST
-            bColumn = BillTable.AddColumn("2cm");
+            //7.CGST Rate
+            bColumn = BillTable.AddColumn("1cm");
             bColumn.Format.Alignment = ParagraphAlignment.Right;
-            //SGST
-            bColumn = BillTable.AddColumn("2cm");
+            //8.CGST Amount
+            bColumn = BillTable.AddColumn("1.4cm");
             bColumn.Format.Alignment = ParagraphAlignment.Right;
-            //TOTAl
-            bColumn = BillTable.AddColumn("2cm");
+            //9.SGST Rate
+            bColumn = BillTable.AddColumn("1cm");
+            bColumn.Format.Alignment = ParagraphAlignment.Right;
+            //10.SGST Amount
+            bColumn = BillTable.AddColumn("1.4cm");
+            bColumn.Format.Alignment = ParagraphAlignment.Right;
+            //11.TOTAl
+            bColumn = BillTable.AddColumn("1.5cm");
             bColumn.Format.Alignment = ParagraphAlignment.Right;
 
             // Create the header of the table
             Row bRow = BillTable.AddRow();
             bRow.HeadingFormat = true;
             bRow.Format.Alignment = ParagraphAlignment.Center;
+            bRow.Format.Font.Size = 7;
+            //Item Header
             bRow.Cells[0].AddParagraph("Item");
             bRow.Cells[0].Format.Alignment = ParagraphAlignment.Center;
             bRow.Cells[0].VerticalAlignment = VerticalAlignment.Center;
+            bRow.Cells[0].MergeDown = 1;
+            //Quantity Header
             bRow.Cells[1].AddParagraph("Quantity");
             bRow.Cells[1].Format.Alignment = ParagraphAlignment.Center;
             bRow.Cells[1].VerticalAlignment = VerticalAlignment.Center;
+            bRow.Cells[1].MergeDown = 1;
+            //Price Header
             bRow.Cells[2].AddParagraph("Unit Price(₹)");
             bRow.Cells[2].Format.Alignment = ParagraphAlignment.Center;
             bRow.Cells[2].VerticalAlignment = VerticalAlignment.Center;
+            bRow.Cells[2].MergeDown = 1;
+            //Amount Header
             bRow.Cells[3].AddParagraph("Amount(₹)");
             bRow.Cells[3].Format.Alignment = ParagraphAlignment.Center;
             bRow.Cells[3].VerticalAlignment = VerticalAlignment.Center;
+            bRow.Cells[3].MergeDown = 1;
+            //Discount Header
             bRow.Cells[4].AddParagraph("Discount(%)");
             bRow.Cells[4].Format.Alignment = ParagraphAlignment.Center;
             bRow.Cells[4].VerticalAlignment = VerticalAlignment.Center;
+            bRow.Cells[4].MergeDown = 1;
+            //Taxable Amount
             bRow.Cells[5].AddParagraph("Taxable Amount(₹)");
             bRow.Cells[5].Format.Alignment = ParagraphAlignment.Center;
             bRow.Cells[5].VerticalAlignment = VerticalAlignment.Center;
-            bRow.Cells[6].AddParagraph("CGST(₹)");
+            bRow.Cells[5].MergeDown = 1;
+            //CGST Header
+            bRow.Cells[6].AddParagraph("CGST");
             bRow.Cells[6].Format.Alignment = ParagraphAlignment.Center;
             bRow.Cells[6].VerticalAlignment = VerticalAlignment.Center;
-            bRow.Cells[7].AddParagraph("SGST(₹)");
-            bRow.Cells[7].Format.Alignment = ParagraphAlignment.Center;
-            bRow.Cells[7].VerticalAlignment = VerticalAlignment.Center;
-            bRow.Cells[8].AddParagraph("Total(₹)");
+            bRow.Cells[6].MergeRight = 1;
+            //SGST Header
+            bRow.Cells[8].AddParagraph("SGST");
             bRow.Cells[8].Format.Alignment = ParagraphAlignment.Center;
             bRow.Cells[8].VerticalAlignment = VerticalAlignment.Center;
+            bRow.Cells[8].MergeRight = 1;
+            //Total Header
+            bRow.Cells[10].AddParagraph("Total(₹)");
+            bRow.Cells[10].Format.Alignment = ParagraphAlignment.Center;
+            bRow.Cells[10].VerticalAlignment = VerticalAlignment.Center;
+            bRow.Cells[10].MergeDown = 1;
+
+            bRow = BillTable.AddRow();
+            bRow.HeadingFormat = true;
+            bRow.Format.Alignment = ParagraphAlignment.Center;
+            bRow.Format.Font.Size = 6;
+            //CSGT Rate
+            bRow.Cells[6].AddParagraph("Rate(%)");
+            bRow.Cells[6].Format.Alignment = ParagraphAlignment.Center;
+            bRow.Cells[6].VerticalAlignment = VerticalAlignment.Center;
+            //CGST Amount
+            bRow.Cells[7].AddParagraph("Amount(₹)");
+            bRow.Cells[7].Format.Alignment = ParagraphAlignment.Center;
+            bRow.Cells[7].VerticalAlignment = VerticalAlignment.Center;
+            //SGST Rate
+            bRow.Cells[8].AddParagraph("Rate(%)");
+            bRow.Cells[8].Format.Alignment = ParagraphAlignment.Center;
+            bRow.Cells[8].VerticalAlignment = VerticalAlignment.Center;
+            //SGST Amount
+            bRow.Cells[9].AddParagraph("Amount(₹)");
+            bRow.Cells[9].Format.Alignment = ParagraphAlignment.Center;
+            bRow.Cells[9].VerticalAlignment = VerticalAlignment.Center;
 
             foreach (var i in b.BillItems)
             {
                 bRow = BillTable.AddRow();
+                bRow.Format.Alignment = ParagraphAlignment.Center;
+                bRow.Format.Font.Size = 6.5;
+                //Item Name
                 bRow.Cells[0].AddParagraph(i.Name);
                 bRow.Cells[0].Format.Alignment = ParagraphAlignment.Center;
+                //Quantity
                 bRow.Cells[1].AddParagraph(Convert.ToString(i.Quantity));
                 bRow.Cells[1].Format.Alignment = ParagraphAlignment.Center;
+                //Unit Price
                 bRow.Cells[2].AddParagraph(i.Price.ToString("0.##"));
                 bRow.Cells[2].Format.Alignment = ParagraphAlignment.Center;
+                //Amount
                 bRow.Cells[3].AddParagraph(i.Amount.ToString("0.##"));
                 bRow.Cells[3].Format.Alignment = ParagraphAlignment.Center;
+                //Discount rate %
                 bRow.Cells[4].AddParagraph(Convert.ToString(i.DiscountRate));
                 bRow.Cells[4].Format.Alignment = ParagraphAlignment.Center;
+                //Taxable Amount
                 bRow.Cells[5].AddParagraph(i.TaxableAmount.ToString("0.##"));
                 bRow.Cells[5].Format.Alignment = ParagraphAlignment.Center;
-                bRow.Cells[6].AddParagraph(i.TaxAmount.ToString("0.##"));
+                //CSGT Rate
+                bRow.Cells[6].AddParagraph(i.TaxRateString);
                 bRow.Cells[6].Format.Alignment = ParagraphAlignment.Center;
+                //CGST Amount
                 bRow.Cells[7].AddParagraph(i.TaxAmount.ToString("0.##"));
                 bRow.Cells[7].Format.Alignment = ParagraphAlignment.Center;
-                bRow.Cells[8].AddParagraph(i.Total.ToString("0.##"));
+                //SGST Rate
+                bRow.Cells[8].AddParagraph(i.TaxRateString);
                 bRow.Cells[8].Format.Alignment = ParagraphAlignment.Center;
+                //SGST Amount
+                bRow.Cells[9].AddParagraph(i.TaxAmount.ToString("0.##"));
+                bRow.Cells[9].Format.Alignment = ParagraphAlignment.Center;
+                //Item Total
+                bRow.Cells[10].AddParagraph(i.Total.ToString("0.##"));
+                bRow.Cells[10].Format.Alignment = ParagraphAlignment.Center;
             }
 
+            //Print tht Bill total Details
+            bRow = BillTable.AddRow();
+            bRow.Format.Alignment = ParagraphAlignment.Center;
+            bRow.Format.Font.Size = 6.5;
+
+            bRow.Cells[0].AddParagraph("Bill Amount (₹)");
+            bRow.Cells[0].Format.Alignment = ParagraphAlignment.Center;
+            bRow.Cells[0].MergeRight = 8;
+            bRow.Cells[9].AddParagraph(b.BillAmount.ToString());
+            bRow.Cells[9].MergeRight = 1;
+
+            //Tax Total
+            bRow = BillTable.AddRow();
+            bRow.Format.Alignment = ParagraphAlignment.Center;
+            bRow.Format.Font.Size = 6.5;
+
+            bRow.Cells[0].AddParagraph("CGST Total (₹)");
+            bRow.Cells[0].Format.Alignment = ParagraphAlignment.Center;
+            bRow.Cells[0].MergeRight = 8;
+            bRow.Cells[9].AddParagraph(b.tax.ToString());
+            bRow.Cells[9].MergeRight = 1;
+
+            //Tax Total
+            bRow = BillTable.AddRow();
+            bRow.Format.Alignment = ParagraphAlignment.Center;
+            bRow.Format.Font.Size = 6.5;
+
+            bRow.Cells[0].AddParagraph("SGST Total (₹)");
+            bRow.Cells[0].Format.Alignment = ParagraphAlignment.Center;
+            bRow.Cells[0].MergeRight = 8;
+            bRow.Cells[9].AddParagraph(b.tax.ToString());
+            bRow.Cells[9].MergeRight = 1;
+
+            //Total
+            bRow = BillTable.AddRow();
+            bRow.Format.Alignment = ParagraphAlignment.Center;
+            bRow.Format.Font.Size = 6.5;
+
+            bRow.Cells[0].AddParagraph("CGST Total (₹)");
+            bRow.Cells[0].Format.Alignment = ParagraphAlignment.Center;
+            bRow.Cells[0].MergeRight = 8;
+            bRow.Cells[9].AddParagraph(b.BillTotal.ToString());
+            bRow.Cells[9].MergeRight = 1;
             BillTable.SetEdge(0, 0, 4, b.getBillItemsCount(), Edge.Box, BorderStyle.Single, 0.75, Color.Empty);
 
             #endregion
@@ -254,8 +377,8 @@ namespace KSE.helpers
             docRenderer.PrepareDocument();
 
             // Render the paragraph. You can render tables or shapes the same way.
-            docRenderer.RenderObject(gfx, XUnit.FromCentimeter(3.5), XUnit.FromCentimeter(2.6), "17cm", InvoiceTable);
-            docRenderer.RenderObject(gfx, XUnit.FromCentimeter(2), XUnit.FromCentimeter(4.5), "20cm", BillTable);
+            docRenderer.RenderObject(gfx, XUnit.FromCentimeter(4.2), XUnit.FromCentimeter(2.3), "8cm", InvoiceTable);
+            docRenderer.RenderObject(gfx, XUnit.FromCentimeter(0.2), XUnit.FromCentimeter(3.8), "10cm", BillTable);
             #endregion
         }
 
@@ -280,7 +403,12 @@ namespace KSE.helpers
 
         static string GetInvoiceNo()
         {
-            return "123456789";
+            //get the directort path to save the bills
+            string billDirPath = ConfigurationSettings.AppSettings["DIRPath"].ToString();
+            string billfolderPath = billDirPath + "\\" + DateTime.Now.Date.ToString("dd-MM-yyyy");
+
+            return ConfigurationSettings.AppSettings["ShopCode"].ToString() + "/" + System.DateTime.Now.ToString("yyMMdd") + "/" + GetFileCountInDirectory(billfolderPath);
         }
+
     }
 }

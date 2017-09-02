@@ -6,15 +6,15 @@
         xmlns:ViewModel ="clr-namespace:KSE.ViewModels;assembly=KSE.ViewModels"
         xmlns:View ="clr-namespace:KSEDesktopBilling.Views"
         mc:Ignorable="d"
-        Title="KSEBilling" Width="1400" MinWidth="1400">
+        Title="KSEBilling" d:DesignHeight="649.21" Width="1238.692">
 
     <!--<WebBrowser Name="myBrowser"/>-->
     <Window.DataContext>
         <ViewModel:BillViewModel/>
     </Window.DataContext>
-    <DockPanel>
+    <DockPanel HorizontalAlignment="Left" Width="1221">
         <View:Header x:Name="AppHeader" DockPanel.Dock="Top"  Padding="10 0 10 0" Margin="0 5"></View:Header>
-        <View:BillView x:Name="Layout" Margin="10,10,-237,10" DockPanel.Dock="Top"/>
+        <View:BillView x:Name="Layout" Margin="10,10,0,10" DockPanel.Dock="Top" HorizontalAlignment="Left" Width="1201"/>
         <Button x:Name="GenerateBill" Click="GenerateBill_Click" Margin="10,0,675,0" Content="Generate Bill" RenderTransformOrigin="-4.208,0.35" Height="29"/>
     </DockPanel>
 

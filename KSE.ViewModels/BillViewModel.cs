@@ -13,10 +13,12 @@ namespace KSE.ViewModels
     {
         private BillItem _b;
 
-        private decimal txtBillDiscount_;
+        private decimal txtBillDiscountRate_;
+        private decimal txtBillDiscountAmount_;
         private readonly ObservableCollection<BillItem> billitems = new ObservableCollection<BillItem>();
         private readonly ObservableCollection<ItemType> types_ = new ObservableCollection<ItemType>();
         private ItemType SelectItemType_;
+        private string paymentMode_;
 
         public BillViewModel()
         {
@@ -43,6 +45,21 @@ namespace KSE.ViewModels
         public IList<ItemType> types
         {
             get { return types_; }
+        }
+
+        public string paymentMode
+        {
+            get
+            {
+                return paymentMode_;
+            }
+            set
+            {
+                if(paymentMode_ != value)
+                {
+                    paymentMode_ = value;
+                }
+            }
         }
 
         public string txtItemName
@@ -131,17 +148,31 @@ namespace KSE.ViewModels
             }
         }
 
-        public decimal txtBillDiscount
+        public decimal txtBillDiscountRate
         {
             get
             {
-                return txtBillDiscount_;
+                return txtBillDiscountRate_;
             }
             set
             {
-                if (txtBillDiscount_ != value)
-                    txtBillDiscount_ = value;
-                RaisePropertyChanged("txtBillDiscount");
+                if (txtBillDiscountRate_ != value)
+                    txtBillDiscountRate_ = value;
+                RaisePropertyChanged("txtBillDiscountRate");
+            }
+        }
+
+        public decimal txtBillDiscountAmount
+        {
+            get
+            {
+                return txtBillDiscountAmount_;
+            }
+            set
+            {
+                if (txtBillDiscountAmount_ != value)
+                    txtBillDiscountAmount_ = value;
+                RaisePropertyChanged("txtBillDiscountAmount");
             }
         }
 
@@ -176,9 +207,14 @@ namespace KSE.ViewModels
             get { return new DelegateCommand(ClearBill); }
         }
 
-        public ICommand DiscountCommand
+        public ICommand DiscountBillPercentCommand
         {
-            get { return new DelegateCommand(DiscountBill); }
+            get { return new DelegateCommand(DiscountBillPercent); }
+        }
+
+        public ICommand DiscountBillAmountCommand
+        {
+            get { return new DelegateCommand(DiscountBillAmount); }
         }
 
         private void AddItem()
@@ -217,14 +253,30 @@ namespace KSE.ViewModels
             RaisePropertyChanged("BillAmount");
         }
 
-        private void DiscountBill()
+        private void DiscountBillPercent()
         {
             var list =  billitems.ToList();
             var index = 0;
             foreach (var item in list)
             {
                 index = billitems.IndexOf(item);
-                item.DiscountRate = txtBillDiscount;
+                item.DiscountRate = txtBillDiscountRate;
+                billitems.Remove(item);
+                billitems.Insert(index, item);
+            }
+            UpdateBill();
+        }
+
+        private void DiscountBillAmount()
+        {
+            var list = billitems.ToList();
+            var Total = billitems.Sum(i => i.Amount);
+            var discountRate =  (txtBillDiscountAmount * 100) / Total;
+            var index = 0;
+            foreach (var item in list)
+            {
+                index = billitems.IndexOf(item);
+                item.DiscountRate = discountRate;
                 billitems.Remove(item);
                 billitems.Insert(index, item);
             }
@@ -241,14 +293,5 @@ namespace KSE.ViewModels
             return billitems.Sum(i => i.TaxAmount);
         }
 
-        //public ICommand RemoveCommand
-        //{
-        //    get { return new DelegateCommand(RemoveItem())}
-        //}
-
-        //private void RemoveItem(BillItem i)
-        //{
-        //    billitems.Remove(i);
-        //}
     }
 }

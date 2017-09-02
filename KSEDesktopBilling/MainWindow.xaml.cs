@@ -1,11 +1,9 @@
 ﻿using System.Windows;
-using System.Windows.Controls;
-using KSEDesktopBilling.ViewModels;
-using System.Drawing.Printing;
-using System;
 using KSE.helpers;
 using KSE.ViewModels;
-
+using System.IO;
+using System.Printing;
+using System.Diagnostics;
 
 namespace KSEDesktopBilling
 {
@@ -23,14 +21,27 @@ namespace KSEDesktopBilling
         private void GenerateBill_Click(object sender, RoutedEventArgs e)
         {
             BillViewModel bill = DataContext as BillViewModel;
-            if(bill.getBillItemsCount() > 0)
+            if (bill.getBillItemsCount() > 0)
             {
-                PrintHelpers.PrintA4Bill(bill);
+                string BillPath = PrintHelpers.PrintA4Bill(bill);
+                SendToPrinter(BillPath);
             }
             else
             {
                 MessageBox.Show("Emtpy Bill, no items added");
             }
+        }
+
+        private void SendToPrinter(string filename)
+        {
+
+            //Using below code we can print any document
+            ProcessStartInfo info = new ProcessStartInfo();
+            info.FileName = filename;
+            info.Verb = "Print";
+            info.CreateNoWindow = true;
+            info.WindowStyle = ProcessWindowStyle.Hidden;
+            Process.Start(info);
         }
 
     }

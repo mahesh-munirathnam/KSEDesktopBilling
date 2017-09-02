@@ -1,4 +1,6 @@
-﻿namespace KSE.Models
+﻿using System;
+
+namespace KSE.Models
 {
 
     public class BillItem 
@@ -71,7 +73,7 @@
         {
             get
             {
-                return _price;
+                return decimal.Round(_price, 2, MidpointRounding.AwayFromZero);
             }
             set
             {
@@ -94,12 +96,17 @@
             }
         }
 
+        public decimal DiscountRateString
+        {
+            get { return decimal.Round(_discount, 2, MidpointRounding.AwayFromZero); }
+        }
+
         //Amount
         public decimal Amount
         {
             get
             {
-                return _price * _quantity;
+                return decimal.Round(_price * _quantity, 2, MidpointRounding.AwayFromZero);
             }
         }
 
@@ -135,7 +142,7 @@
         {
             get
             {
-              return GetTaxAmount();
+              return decimal.Round(GetTaxAmount(), 2, MidpointRounding.AwayFromZero);
             }
         }
 
@@ -171,7 +178,7 @@
         //function to get Taxable Amount
         private decimal GetTaxableAmount()
         {
-            return Amount - GetDiscountAmount();
+            return Amount - decimal.Round(GetDiscountAmount(), 2, MidpointRounding.AwayFromZero);
         }
 
         //function to get Discount Amount
@@ -179,7 +186,7 @@
         {
             if (DiscountRate != default(decimal))
             {
-                return ((DiscountRate * Amount) / 100);
+                return  ((DiscountRate * Amount) / 100);
             }
             return 0;
         }
